@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v3.1",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v3.1": {
+      "MonolithicSupervisor_MDP/1.0.0": {
+        "dependencies": {
+          "UltraDES": "2.1.2.3"
+        },
+        "runtime": {
+          "MonolithicSupervisor_MDP.dll": {}
+        }
+      },
+      "UltraDES/2.1.2.3": {
+        "runtime": {
+          "lib/netstandard2.0/UltraDES.dll": {
+            "assemblyVersion": "2.1.2.3",
+            "fileVersion": "2.1.2.3"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MonolithicSupervisor_MDP/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "UltraDES/2.1.2.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Fwf6rmGq+2TG/O2dYvMN05pzTDq7aoYVGiap25kaQ3zpl2X6qlzSz1z4car89M9e+qWYj/uEQ1P5r6dvC1qsag==",
+      "path": "ultrades/2.1.2.3",
+      "hashPath": "ultrades.2.1.2.3.nupkg.sha512"
+    }
+  }
+}

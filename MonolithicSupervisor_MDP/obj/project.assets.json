@@ -1,0 +1,100 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETCoreApp,Version=v3.1": {
+      "UltraDES/2.1.2.3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/UltraDES.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/UltraDES.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "UltraDES/2.1.2.3": {
+      "sha512": "Fwf6rmGq+2TG/O2dYvMN05pzTDq7aoYVGiap25kaQ3zpl2X6qlzSz1z4car89M9e+qWYj/uEQ1P5r6dvC1qsag==",
+      "type": "package",
+      "path": "ultrades/2.1.2.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/netstandard2.0/UltraDES.dll",
+        "linqpad-samples/Getting Started/UltraDES Basics.linq",
+        "linqpad-samples/Supervisory Control Theory/FMS Modular Supervisor.linq",
+        "linqpad-samples/Supervisory Control Theory/ITL Monolithic Supervisor.linq",
+        "ultrades.2.1.2.3.nupkg.sha512",
+        "ultrades.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETCoreApp,Version=v3.1": [
+      "UltraDES >= 2.1.2.3"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\Administrador\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\Administrador\\Documents\\Matheus Cascalho\\lacsed\\MarkovianDecisionProcess_MonolithicSupervisor\\MonolithicSupervisor_MDP\\MonolithicSupervisor_MDP.csproj",
+      "projectName": "MonolithicSupervisor_MDP",
+      "projectPath": "C:\\Users\\Administrador\\Documents\\Matheus Cascalho\\lacsed\\MarkovianDecisionProcess_MonolithicSupervisor\\MonolithicSupervisor_MDP\\MonolithicSupervisor_MDP.csproj",
+      "packagesPath": "C:\\Users\\Administrador\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Administrador\\Documents\\Matheus Cascalho\\lacsed\\MarkovianDecisionProcess_MonolithicSupervisor\\MonolithicSupervisor_MDP\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\Administrador\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "netcoreapp3.1"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "netcoreapp3.1": {
+        "dependencies": {
+          "UltraDES": {
+            "target": "Package",
+            "version": "[2.1.2.3, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.200\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

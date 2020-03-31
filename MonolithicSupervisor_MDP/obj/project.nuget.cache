@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "WaxcnJK0RpgEGBTu+cGscHyV4x3GVg35mWVLju1aw4s1LmoyjIZLp6A23LdAoeWypoyZXPuz/h+MZkWnLXKPsA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Administrador\\Documents\\Matheus Cascalho\\lacsed\\MarkovianDecisionProcess_MonolithicSupervisor\\MonolithicSupervisor_MDP\\MonolithicSupervisor_MDP.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Administrador\\.nuget\\packages\\ultrades\\2.1.2.3\\ultrades.2.1.2.3.nupkg.sha512"
+  ],
+  "logs": []
+}
