@@ -13,8 +13,13 @@ namespace MultiAgentMarkovMonolithic
 
         public FMS()
         {
-            var s = Enumerable.Range(0, 6).Select(i => new State($"s{i}", i == 0 ? Marking.Marked : Marking.Unmarked)).ToArray();
+            // var s = Enumerable.Range(0, 6).Select(i => new State($"s{i}", i == 0 ? Marking.Marked : Marking.Unmarked)).ToArray();
             var e = Enumerable.Range(0, 100).Select(i => new Event($"e{i}", i % 2 != 0 ? Controllability.Controllable : Controllability.Uncontrollable)).ToArray();
+
+            // Criando os estados. O estado 0 não terá nenhuma tarefa ativa e os demais terão 1 tarefa ativa 
+            var s = Enumerable.Range(0, 6)
+               .ToDictionary(i => i,
+                   i => new ExpandedState(i.ToString(), i == 0 ? 0u : 1u, i == 0 ? Marking.Marked : Marking.Unmarked));
 
             // Maquinas
             var c1 = new Conveyor(estadoLigado: s[1], estadoDesligado: s[0], eventoLigar: e[11], eventoDesligar: e[12], nameConveyor: "C1");
