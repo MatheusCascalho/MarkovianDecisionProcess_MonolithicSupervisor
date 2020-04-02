@@ -21,8 +21,8 @@ namespace MultiAgentMarkovMonolithic
                 var supervisor = problema.Supervisor;
             timer.Stop();
             
-            Console.WriteLine($"Supervisor monolitico criado em: {timer.ElapsedMilliseconds / 1000.0} seg\n");
-            Console.WriteLine($"O supervisor do problema tem {supervisor.States.ToArray().Length} estados\n");
+            Console.WriteLine($"Supervisor monolitico criado em: {timer.ElapsedMilliseconds / 1000.0} seg");
+            Console.WriteLine($"O supervisor do problema tem {supervisor.States.ToArray().Length} estados");
             
             // Relacionando cada estado com suas respectivas transições
             allowedEvents = supervisor.Transitions.GroupBy(t => t.Origin).ToDictionary(g => g.Key, g => g.ToArray());
@@ -128,18 +128,21 @@ namespace MultiAgentMarkovMonolithic
                         {
                             sum += (double)Probabilidade(s, sDest, a) * (s.ActiveTasks() + d * v[sDest]);
                         }
-                        if (eventosOrdenadosPorEsperanca.ContainsKey(sum))
-                        {
-                            eventosOrdenadosPorEsperanca.Add((double)sum + 1e-10, a);
-                        }
-                        else
+                        if (!eventosOrdenadosPorEsperanca.ContainsKey(sum))
                         {
                             eventosOrdenadosPorEsperanca.Add(sum, a);
                         }
-                                               
+                        else
+                        {
+                            double diff = 1e-10; 
+                            while (eventosOrdenadosPorEsperanca.ContainsKey(sum + diff))
+                            {
+                                diff = diff + diff / 10;
+                            }
+                            eventosOrdenadosPorEsperanca.Add(sum + diff, a); //adiciona uma chave diferente ao dicionário
+                        }                      
                         esperancas.Add(sum);                        
                     }
-                    
                     v[s] = Max(esperancas);
                     // v[s] = eventosOrdenadosPorEsperanca.First().Key;
                     mapping[s] = eventosOrdenadosPorEsperanca.Values.ToList();
@@ -150,7 +153,7 @@ namespace MultiAgentMarkovMonolithic
         }
 
         /// <summary>
-        /// Retorna o maior valor de um array
+        /// Retorna o maior valor de uma lista de double
         /// </summary>
         /// <param name="dados"></param>
         /// <returns></returns>
