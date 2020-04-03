@@ -151,9 +151,14 @@ namespace MultiAgentMarkovMonolithic
                         }
                         else
                         {
-                            eventosOrdenadosPorEsperanca.Add(sum, a);
+                            double diff = 1e-10;
+                            while (eventosOrdenadosPorEsperanca.ContainsKey(sum + diff))
+                            {
+                                diff = diff + diff / 10;
+                            }
+                            eventosOrdenadosPorEsperanca.Add(sum + diff, a); //adiciona uma chave diferente ao dicionário
                         }
-                                               
+
                         esperancas.Add(sum);                        
                     }
                     
