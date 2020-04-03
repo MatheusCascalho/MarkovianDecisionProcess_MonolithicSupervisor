@@ -4,6 +4,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UltraDES;
+using Politica = System.Collections.Generic.Dictionary<UltraDES.AbstractState, System.Collections.Generic.List<UltraDES.AbstractEvent>>;
+using Scheduler = System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, float>;
+using Restriction = System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, uint>;
 
 namespace MultiAgentMarkovMonolithic
 {
@@ -30,10 +33,24 @@ namespace MultiAgentMarkovMonolithic
 
             var timerOptimization = new Stopwatch();
             timerOptimization.Start();
-                var map = ValueIterationMethod(supervisor.States, supervisor.Events);
+                Politica map = ValueIterationMethod(supervisor.States, supervisor.Events);
             timerOptimization.Stop();
 
-            Console.WriteLine($"\nOtimização realizada em {timerOptimization.ElapsedMilliseconds / 1000.0} seg");
+            Console.WriteLine($"\nPolitica de otimizacao encontrada em {timerOptimization.ElapsedMilliseconds / 1000.0} seg");
+
+            var timerProducao = new Stopwatch();
+            timerProducao.Start();
+                List<Transition> transicoes = TransicoesProducao(politica: map, qtdProdutos: 2, problema: problema);
+            timerProducao.Stop();
+
+            Console.WriteLine($"\nProducao realizada em {timerProducao.ElapsedMilliseconds / 1000.0} seg");
+            Console.WriteLine($"Transições realizadas na producao:\n");
+            foreach(var t in transicoes)
+            {
+                Console.WriteLine(t);
+            }
+
+
         }
 
         /// <summary>
@@ -84,14 +101,14 @@ namespace MultiAgentMarkovMonolithic
         /// <param name="stateSet"></param>
         /// <param name="eventSet"></param>
         /// <returns></returns>
-        static Dictionary<AbstractState, List<AbstractEvent>> ValueIterationMethod(IEnumerable<AbstractState> stateSet, 
+        static Politica ValueIterationMethod(IEnumerable<AbstractState> stateSet, 
             IEnumerable<AbstractEvent> eventSet)
         {
             // v = dicionário que relaciona cada estado com sua esperança de ocorrencia
             Dictionary<AbstractState, double> v = new Dictionary<AbstractState, double>();
             
             // mapping = dicionário que relaciona cada estado com uma lista de ações otimas 
-            Dictionary<AbstractState, List<AbstractEvent>> mapping = new Dictionary<AbstractState, List<AbstractEvent>>();
+            Politica mapping = new Dictionary<AbstractState, List<AbstractEvent>>();
             
             // d = constante de desconto
             double d = 0.7;
@@ -142,7 +159,9 @@ namespace MultiAgentMarkovMonolithic
                     
                     v[s] = Max(esperancas);
                     // v[s] = eventosOrdenadosPorEsperanca.First().Key;
-                    mapping[s] = eventosOrdenadosPorEsperanca.Values.ToList();
+                    var eventosOrdenados = eventosOrdenadosPorEsperanca.Values.ToList();
+                    eventosOrdenados.Reverse();
+                    mapping[s] = eventosOrdenados;
                 }
             }
 
@@ -165,6 +184,45 @@ namespace MultiAgentMarkovMonolithic
                 }
             }
             return max;
+        }
+
+        static List<Transition> TransicoesProducao(Politica politica, int qtdProdutos, FMS problema)
+        {
+            AbstractState estadoAtual = problema.Supervisor.InitialState;
+            Restriction restricao = problema.InitialRestriction(qtdProdutos);
+            Scheduler scheduler = problema.InitialScheduler();
+            AbstractEvent eventoOtimo = politica[estadoAtual][0];
+            int qtdEventosPossiveis = politica[estadoAtual].Count;
+            int qtdTransicoes = 0;
+            List<Transition> transicoes = new List<Transition>();
+
+            // Enquanto existirem eventos permitidos na restricao
+            while (qtdEventosPossiveis > 0)
+            {
+                if (restricao[eventoOtimo] == 0) qtdEventosPossiveis -= 1;
+                else
+                {
+                    // Atualizando restricao e scheduler
+                    restricao = problema.UpdateRestriction(restricao, eventoOtimo);
+                    scheduler = problema.UpdatedScheduler(old: scheduler, ev: eventoOtimo);
+
+                    // Procurando o proximo estado
+                    foreach (var t in allowedEvents[estadoAtual])
+                    {
+                        if (t.Trigger == eventoOtimo)
+                        {
+                            estadoAtual = t.Destination;
+                            eventoOtimo = politica[estadoAtual][0];
+                            transicoes.Add(t);
+                        }
+                    }
+                    qtdTransicoes += 1;
+                }                
+            }
+
+            Console.WriteLine("Já nao existem mais eventos permitidos pela politica");
+            
+            return transicoes;
         }
     }
 }

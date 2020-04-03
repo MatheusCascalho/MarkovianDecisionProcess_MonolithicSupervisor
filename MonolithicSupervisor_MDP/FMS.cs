@@ -3,18 +3,24 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using UltraDES;
+using Scheduler = System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, float>;
+using Restriction = System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, uint>;
+using Update = System.Func<System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, float>, UltraDES.AbstractEvent, System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, float>>;
+
 
 namespace MultiAgentMarkovMonolithic
 {
      
     public class FMS
     {
+        public readonly Event[] e;
+
         public DeterministicFiniteAutomaton Supervisor { get; set; }
 
         public FMS()
         {
             // var s = Enumerable.Range(0, 6).Select(i => new State($"s{i}", i == 0 ? Marking.Marked : Marking.Unmarked)).ToArray();
-            var e = Enumerable.Range(0, 100).Select(i => new Event($"e{i}", i % 2 != 0 ? Controllability.Controllable : Controllability.Uncontrollable)).ToArray();
+            e = Enumerable.Range(0, 100).Select(i => new Event($"e{i}", i % 2 != 0 ? Controllability.Controllable : Controllability.Uncontrollable)).ToArray();
 
             // Criando os estados. O estado 0 não terá nenhuma tarefa ativa e os demais terão 1 tarefa ativa 
             var s = Enumerable.Range(0, 6)
@@ -62,6 +68,63 @@ namespace MultiAgentMarkovMonolithic
                       
 
         }
+
+        public Restriction InitialRestriction(int products)
+        {
+            var eventosFSM = e.ToArray();
+            return new Restriction
+            {
+                {eventosFSM[11], (uint) (2*products)},
+                {eventosFSM[21], (uint) (2*products)},
+                {eventosFSM[31], (uint) (2*products)},
+                {eventosFSM[33], (uint) (2*products)},
+                {eventosFSM[35], (uint) (2*products)},
+                {eventosFSM[37], (uint) (1*products)},
+                {eventosFSM[39], (uint) (1*products)},
+                {eventosFSM[41], (uint) (2*products)},
+                {eventosFSM[51], (uint) (1*products)},
+                {eventosFSM[53], (uint) (1*products)},
+                {eventosFSM[61], (uint) (2*products)},
+                {eventosFSM[63], (uint) (1*products)},
+                {eventosFSM[65], (uint) (1*products)},
+                {eventosFSM[71], (uint) (1*products)},
+                {eventosFSM[73], (uint) (1*products)},
+                {eventosFSM[81], (uint) (1*products)}
+            };
+        }
+
+        public Scheduler InitialScheduler()
+        {
+            Scheduler sch = new Scheduler();
+            // var eventosFSM = e.ToArray();
+            foreach(var ev in e)
+            {
+                var tempo = ev.IsControllable ? 0.0f : float.PositiveInfinity;
+                sch.Add(ev, tempo);
+            }
+
+            return sch;
+        }
+
+        public Scheduler UpdatedScheduler(Scheduler old, AbstractEvent ev)
+        {
+            // kvp = par chave-valor
+            var newScheduler = old.ToDictionary(kvp => kvp.Key, kvp =>
+            {
+                var v = kvp.Value - old[ev];
+                if (kvp.Key.IsControllable) return v < 0 ? 0.0f : v;
+                if (v < 0) return float.NaN;
+                return v;
+            });
+            return newScheduler;
+        }
+
+        public Restriction UpdateRestriction (Restriction old, AbstractEvent ev)
+        {
+            old[ev] -= 1;
+            return old;
+        }
+
     }
 
 }
