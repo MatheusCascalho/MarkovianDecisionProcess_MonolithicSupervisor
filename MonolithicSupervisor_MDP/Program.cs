@@ -151,6 +151,7 @@ namespace MultiAgentMarkovMonolithic
                         }
                         else
                         {
+<<<<<<< HEAD
                             double diff = 1e-10;
                             while (eventosOrdenadosPorEsperanca.ContainsKey(sum - diff))
                             {
@@ -158,9 +159,17 @@ namespace MultiAgentMarkovMonolithic
                             }
                             eventosOrdenadosPorEsperanca.Add(sum - diff, a); //adiciona uma chave diferente ao dicionário
                         }
+=======
+                            double diff = 1e-10; 
+                            while (eventosOrdenadosPorEsperanca.ContainsKey(sum + diff))
+                            {
+                                diff = diff + diff / 10;
+                            }
+                            eventosOrdenadosPorEsperanca.Add(sum + diff, a); //adiciona uma chave diferente ao dicionário
+                        }                      
+>>>>>>> 57db20e1d0b1a664dbd9575529dde1c7a17e4571
                         esperancas.Add(sum);                        
                     }
-                    
                     v[s] = Max(esperancas);
                     // v[s] = eventosOrdenadosPorEsperanca.First().Key;
                     var eventosOrdenados = eventosOrdenadosPorEsperanca.Values.ToList();
@@ -173,7 +182,7 @@ namespace MultiAgentMarkovMonolithic
         }
 
         /// <summary>
-        /// Retorna o maior valor de um array
+        /// Retorna o maior valor de uma lista de double
         /// </summary>
         /// <param name="dados"></param>
         /// <returns></returns>
