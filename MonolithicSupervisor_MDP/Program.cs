@@ -44,7 +44,7 @@ namespace MultiAgentMarkovMonolithic
             timerProducao.Stop();
 
             Console.WriteLine($"\nProducao realizada em {timerProducao.ElapsedMilliseconds / 1000.0} seg");
-            Console.WriteLine($"Transições realizadas na producao:\n");
+            Console.WriteLine($"Foram realizadads {transicoes.Count} transições, sendo elas:\n");
             foreach(var t in transicoes)
             {
                 Console.WriteLine(t);
@@ -143,7 +143,7 @@ namespace MultiAgentMarkovMonolithic
                         double sum = 0.0;
                         foreach (var sDest in estadosDestino)
                         {
-                            sum += (double)Probabilidade(s, sDest, a) * (s.ActiveTasks() + d * v[sDest]);
+                            sum += (double)Probabilidade(s, sDest, a) * (sDest.ActiveTasks() + d * v[sDest]);
                         }
                         if (!eventosOrdenadosPorEsperanca.ContainsKey(sum))
                         {
@@ -152,11 +152,11 @@ namespace MultiAgentMarkovMonolithic
                         else
                         {
                             double diff = 1e-10;
-                            while (eventosOrdenadosPorEsperanca.ContainsKey(sum + diff))
+                            while (eventosOrdenadosPorEsperanca.ContainsKey(sum - diff))
                             {
                                 diff = diff + diff / 10;
                             }
-                            eventosOrdenadosPorEsperanca.Add(sum + diff, a); //adiciona uma chave diferente ao dicionário
+                            eventosOrdenadosPorEsperanca.Add(sum - diff, a); //adiciona uma chave diferente ao dicionário
                         }
                         esperancas.Add(sum);                        
                     }
@@ -198,36 +198,59 @@ namespace MultiAgentMarkovMonolithic
             AbstractEvent eventoOtimo = politica[estadoAtual][0];
             int qtdEventosPossiveis = politica[estadoAtual].Count;
             int qtdTransicoes = 0;
+            int itEventOtimo = 0;
+            float tempoDeProducao = 0;
             List<Transition> transicoes = new List<Transition>();
+            bool pararProducao = false;
 
             // Enquanto existirem eventos permitidos na restricao
             while (qtdEventosPossiveis > 0)
             {
                 if (restricao.ContainsKey(eventoOtimo))
                 {
-                    if (restricao[eventoOtimo] == 0) qtdEventosPossiveis -= 1;
-                }                
-                else
-                {
-                    // Atualizando restricao e scheduler
-                    restricao = problema.UpdateRestriction(restricao, eventoOtimo);
-                    scheduler = problema.UpdatedScheduler(old: scheduler, ev: eventoOtimo);
-
-                    // Procurando o proximo estado
-                    foreach (var t in allowedEvents[estadoAtual])
+                    if (restricao[eventoOtimo] == 0) 
                     {
-                        if (t.Trigger == eventoOtimo)
+                        while (restricao[eventoOtimo] == 0)
                         {
-                            estadoAtual = t.Destination;
-                            eventoOtimo = politica[estadoAtual][0];
-                            transicoes.Add(t);
-                        }
+                            qtdEventosPossiveis -= 1;
+                            itEventOtimo += 1;
+                            if (itEventOtimo < politica[estadoAtual].Count)
+                            {
+                                eventoOtimo = politica[estadoAtual][itEventOtimo];
+                            }
+                            else if ((!float.IsNaN(scheduler[eventoOtimo])) || (itEventOtimo >= politica[estadoAtual].Count))
+                            { 
+                                pararProducao = true;
+                                break;
+                            }
+                            if (!restricao.ContainsKey(eventoOtimo)) break;
+                        }                        
+                        itEventOtimo = 0;
+                    } 
+                }
+                if (!(scheduler[eventoOtimo] is float.NaN) && !(scheduler[eventoOtimo] is float.PositiveInfinity)) tempoDeProducao += scheduler[eventoOtimo];
+                if (pararProducao) break;
+                // Atualizando restricao e scheduler
+                restricao = problema.UpdateRestriction(restricao, eventoOtimo);
+                scheduler = problema.UpdatedScheduler(old: scheduler, ev: eventoOtimo);
+
+                // Procurando o proximo estado
+                foreach (var t in allowedEvents[estadoAtual])
+                {
+                    if (t.Trigger == eventoOtimo)
+                    {
+                        estadoAtual = t.Destination;
+                        eventoOtimo = politica[estadoAtual][0];
+                        transicoes.Add(t);
+                        break;
                     }
-                    qtdTransicoes += 1;
-                }                
+                }
+                qtdTransicoes += 1;
+                qtdEventosPossiveis = politica[estadoAtual].Count;
             }
 
             Console.WriteLine("Já nao existem mais eventos permitidos pela politica");
+            Console.WriteLine($"Tempo de execução: {tempoDeProducao} u.t.");
             
             return transicoes;
         }

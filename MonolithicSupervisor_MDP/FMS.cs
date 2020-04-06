@@ -6,22 +6,35 @@ using UltraDES;
 using Scheduler = System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, float>;
 using Restriction = System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, uint>;
 using Update = System.Func<System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, float>, UltraDES.AbstractEvent, System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, float>>;
-
+using TableTime = System.Collections.Generic.Dictionary<UltraDES.AbstractEvent, (UltraDES.AbstractEvent eventoNaoControlavel, float tempo)>;
 
 namespace MultiAgentMarkovMonolithic
 {
      
     public class FMS
     {
-        public readonly Event[] e;
+        public readonly Dictionary<int, Event> e;
 
+        public readonly TableTime table;      
         public DeterministicFiniteAutomaton Supervisor { get; set; }
 
         public FMS()
         {
-            // var s = Enumerable.Range(0, 6).Select(i => new State($"s{i}", i == 0 ? Marking.Marked : Marking.Unmarked)).ToArray();
-            e = Enumerable.Range(0, 100).Select(i => new Event($"e{i}", i % 2 != 0 ? Controllability.Controllable : Controllability.Uncontrollable)).ToArray();
+            e = new int[]
+            {
+                11, 12, 21, 22, 41,
+                42, 51, 52, 53, 54, 31,
+                32, 33, 34, 35, 36, 37, 38, 39, 30, 61,
+                63, 65, 64, 66, 71, 72, 73, 74, 81, 82
+            }.ToDictionary(alias => alias,
+                 alias =>
+                     new Event(alias.ToString(),
+                         alias % 2 == 0 ? Controllability.Uncontrollable : Controllability.Controllable)); ;
 
+            table = aproximatedTime();
+
+            // var s = Enumerable.Range(0, 6).Select(i => new State($"s{i}", i == 0 ? Marking.Marked : Marking.Unmarked)).ToArray();
+            
             // Criando os estados. O estado 0 não terá nenhuma tarefa ativa e os demais terão 1 tarefa ativa 
             var s = Enumerable.Range(0, 6)
                .ToDictionary(i => i,
@@ -71,25 +84,24 @@ namespace MultiAgentMarkovMonolithic
 
         public Restriction InitialRestriction(int products)
         {
-            var eventosFSM = e.ToArray();
             return new Restriction
             {
-                {eventosFSM[11], (uint) (2*products)},
-                {eventosFSM[21], (uint) (2*products)},
-                {eventosFSM[31], (uint) (2*products)},
-                {eventosFSM[33], (uint) (2*products)},
-                {eventosFSM[35], (uint) (2*products)},
-                {eventosFSM[37], (uint) (1*products)},
-                {eventosFSM[39], (uint) (1*products)},
-                {eventosFSM[41], (uint) (2*products)},
-                {eventosFSM[51], (uint) (1*products)},
-                {eventosFSM[53], (uint) (1*products)},
-                {eventosFSM[61], (uint) (2*products)},
-                {eventosFSM[63], (uint) (1*products)},
-                {eventosFSM[65], (uint) (1*products)},
-                {eventosFSM[71], (uint) (1*products)},
-                {eventosFSM[73], (uint) (1*products)},
-                {eventosFSM[81], (uint) (1*products)}
+                {e[11], (uint) (2*products)},
+                {e[21], (uint) (2*products)},
+                {e[31], (uint) (2*products)},
+                {e[33], (uint) (2*products)},
+                {e[35], (uint) (2*products)},
+                {e[37], (uint) (1*products)},
+                {e[39], (uint) (1*products)},
+                {e[41], (uint) (2*products)},
+                {e[51], (uint) (1*products)},
+                {e[53], (uint) (1*products)},
+                {e[61], (uint) (2*products)},
+                {e[63], (uint) (1*products)},
+                {e[65], (uint) (1*products)},
+                {e[71], (uint) (1*products)},
+                {e[73], (uint) (1*products)},
+                {e[81], (uint) (1*products)}
             };
         }
 
@@ -99,8 +111,8 @@ namespace MultiAgentMarkovMonolithic
             // var eventosFSM = e.ToArray();
             foreach(var ev in e)
             {
-                var tempo = ev.IsControllable ? 0.0f : float.PositiveInfinity;
-                sch.Add(ev, tempo);
+                var tempo = ev.Value.IsControllable ? 0.0f : float.PositiveInfinity;
+                sch.Add(ev.Value, tempo);
             }
 
             return sch;
@@ -111,9 +123,11 @@ namespace MultiAgentMarkovMonolithic
             // kvp = par chave-valor
             var newScheduler = old.ToDictionary(kvp => kvp.Key, kvp =>
             {
-                var v = kvp.Value - old[ev];
-                if (kvp.Key.IsControllable) return v < 0 ? 0.0f : v;
-                if (v < 0) return float.NaN;
+                float v = kvp.Value - old[ev];
+                if ((table.ContainsKey(ev)) && (table[ev].eventoNaoControlavel == kvp.Key)) v = table[ev].tempo;
+                else if (kvp.Key.IsControllable) return v < 0 ? 0.0f : v;
+                else if (v < 0) return float.NaN;
+                else if (v == 0) v = float.PositiveInfinity;
                 return v;
             });
             return newScheduler;
@@ -121,10 +135,33 @@ namespace MultiAgentMarkovMonolithic
 
         public Restriction UpdateRestriction (Restriction old, AbstractEvent ev)
         {
-            old[ev] -= 1;
+            if (old.ContainsKey(ev)) {
+                old[ev] -= 1;
+            } 
             return old;
         }
 
+        public TableTime aproximatedTime() 
+        {
+            return new TableTime
+            {
+                { e[11], (eventoNaoControlavel: e[12], tempo: 25) },
+                { e[21], (eventoNaoControlavel: e[22], tempo: 25) },
+                { e[31], (eventoNaoControlavel: e[32], tempo: 21) },
+                { e[33], (eventoNaoControlavel: e[34], tempo: 19) },
+                { e[35], (eventoNaoControlavel: e[36], tempo: 16) },
+                { e[37], (eventoNaoControlavel: e[38], tempo: 24) },
+                { e[39], (eventoNaoControlavel: e[30], tempo: 20) },
+                { e[51], (eventoNaoControlavel: e[52], tempo: 38) },
+                { e[53], (eventoNaoControlavel: e[54], tempo: 32) },
+                { e[41], (eventoNaoControlavel: e[42], tempo: 30) },
+                { e[71], (eventoNaoControlavel: e[72], tempo: 25) },
+                { e[73], (eventoNaoControlavel: e[74], tempo: 25) },
+                { e[63], (eventoNaoControlavel: e[64], tempo: 25) },
+                { e[65], (eventoNaoControlavel: e[66], tempo: 25) },
+                { e[81], (eventoNaoControlavel: e[82], tempo: 24) }
+            };
+        }
     }
 
 }
