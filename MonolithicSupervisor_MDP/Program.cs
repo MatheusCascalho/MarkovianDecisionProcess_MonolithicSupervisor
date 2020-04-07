@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
@@ -17,35 +17,35 @@ namespace MultiAgentMarkovMonolithic
         static void Main(string[] args)
         {
             Console.WriteLine("Programa iniciado!!\n");
-            
+
             var timer = new Stopwatch();
             timer.Start();
-                var problema = new FMS();
-                var supervisor = problema.Supervisor;
+            var problema = new FMS();
+            var supervisor = problema.Supervisor;
             timer.Stop();
-            
+
             Console.WriteLine($"Supervisor monolitico criado em: {timer.ElapsedMilliseconds / 1000.0} seg");
             Console.WriteLine($"O supervisor do problema tem {supervisor.States.ToArray().Length} estados");
-            
+
             // Relacionando cada estado com suas respectivas transições
             allowedEvents = supervisor.Transitions.GroupBy(t => t.Origin).ToDictionary(g => g.Key, g => g.ToArray());
 
 
             var timerOptimization = new Stopwatch();
             timerOptimization.Start();
-                Politica map = ValueIterationMethod(supervisor.States, supervisor.Events);
+            Politica map = ValueIterationMethod(supervisor.States, supervisor.Events);
             timerOptimization.Stop();
 
             Console.WriteLine($"\nPolitica de otimizacao encontrada em {timerOptimization.ElapsedMilliseconds / 1000.0} seg");
 
             var timerProducao = new Stopwatch();
             timerProducao.Start();
-                List<Transition> transicoes = TransicoesProducao(politica: map, qtdProdutos: 2, problema: problema);
+            List<Transition> transicoes = TransicoesProducao(politica: map, qtdProdutos: 2, problema: problema);
             timerProducao.Stop();
 
             Console.WriteLine($"\nProducao realizada em {timerProducao.ElapsedMilliseconds / 1000.0} seg");
             Console.WriteLine($"Foram realizadads {transicoes.Count} transições, sendo elas:\n");
-            foreach(var t in transicoes)
+            foreach (var t in transicoes)
             {
                 Console.WriteLine(t);
             }
@@ -101,18 +101,18 @@ namespace MultiAgentMarkovMonolithic
         /// <param name="stateSet"></param>
         /// <param name="eventSet"></param>
         /// <returns></returns>
-        static Politica ValueIterationMethod(IEnumerable<AbstractState> stateSet, 
+        static Politica ValueIterationMethod(IEnumerable<AbstractState> stateSet,
             IEnumerable<AbstractEvent> eventSet)
         {
             // v = dicionário que relaciona cada estado com sua esperança de ocorrencia
             Dictionary<AbstractState, double> v = new Dictionary<AbstractState, double>();
-            
+
             // mapping = dicionário que relaciona cada estado com uma lista de ações otimas 
             Politica mapping = new Dictionary<AbstractState, List<AbstractEvent>>();
-            
+
             // d = constante de desconto
             double d = 0.7;
-            
+
             // Atribuindo valores arbitrarios para a v inicial e criando as keys para o mapping
             foreach (var s in stateSet)
             {
@@ -129,17 +129,17 @@ namespace MultiAgentMarkovMonolithic
                     // Registrando os eventos permitidos para o estado s e os eventos destino possíveis
                     List<AbstractState> estadosDestino = new List<AbstractState>();
                     List<AbstractEvent> eventosPermitidos = new List<AbstractEvent>();
-                    foreach(var t in allowedEvents[s])
+                    foreach (var t in allowedEvents[s])
                     {
                         estadosDestino.Add(t.Destination);
                         eventosPermitidos.Add(t.Trigger);
                     }
-                    
+
                     // Calculando a esperança de maximização de paralelismo para cada ação
                     List<double> esperancas = new List<double>();
                     SortedDictionary<double, AbstractEvent> eventosOrdenadosPorEsperanca = new SortedDictionary<double, AbstractEvent>();
                     foreach (var a in eventosPermitidos)
-                    {                        
+                    {
                         double sum = 0.0;
                         foreach (var sDest in estadosDestino)
                         {
@@ -151,7 +151,6 @@ namespace MultiAgentMarkovMonolithic
                         }
                         else
                         {
-<<<<<<< HEAD
                             double diff = 1e-10;
                             while (eventosOrdenadosPorEsperanca.ContainsKey(sum - diff))
                             {
@@ -159,17 +158,9 @@ namespace MultiAgentMarkovMonolithic
                             }
                             eventosOrdenadosPorEsperanca.Add(sum - diff, a); //adiciona uma chave diferente ao dicionário
                         }
-=======
-                            double diff = 1e-10; 
-                            while (eventosOrdenadosPorEsperanca.ContainsKey(sum + diff))
-                            {
-                                diff = diff + diff / 10;
-                            }
-                            eventosOrdenadosPorEsperanca.Add(sum + diff, a); //adiciona uma chave diferente ao dicionário
-                        }                      
->>>>>>> 57db20e1d0b1a664dbd9575529dde1c7a17e4571
-                        esperancas.Add(sum);                        
+                        esperancas.Add(sum);
                     }
+
                     v[s] = Max(esperancas);
                     // v[s] = eventosOrdenadosPorEsperanca.First().Key;
                     var eventosOrdenados = eventosOrdenadosPorEsperanca.Values.ToList();
@@ -182,7 +173,7 @@ namespace MultiAgentMarkovMonolithic
         }
 
         /// <summary>
-        /// Retorna o maior valor de uma lista de double
+        /// Retorna o maior valor de um array
         /// </summary>
         /// <param name="dados"></param>
         /// <returns></returns>
@@ -217,7 +208,7 @@ namespace MultiAgentMarkovMonolithic
             {
                 if (restricao.ContainsKey(eventoOtimo))
                 {
-                    if (restricao[eventoOtimo] == 0) 
+                    if (restricao[eventoOtimo] == 0)
                     {
                         while (restricao[eventoOtimo] == 0)
                         {
@@ -228,14 +219,14 @@ namespace MultiAgentMarkovMonolithic
                                 eventoOtimo = politica[estadoAtual][itEventOtimo];
                             }
                             else if ((!float.IsNaN(scheduler[eventoOtimo])) || (itEventOtimo >= politica[estadoAtual].Count))
-                            { 
+                            {
                                 pararProducao = true;
                                 break;
                             }
                             if (!restricao.ContainsKey(eventoOtimo)) break;
-                        }                        
+                        }
                         itEventOtimo = 0;
-                    } 
+                    }
                 }
                 if (!(scheduler[eventoOtimo] is float.NaN) && !(scheduler[eventoOtimo] is float.PositiveInfinity)) tempoDeProducao += scheduler[eventoOtimo];
                 if (pararProducao) break;
@@ -260,7 +251,7 @@ namespace MultiAgentMarkovMonolithic
 
             Console.WriteLine("Já nao existem mais eventos permitidos pela politica");
             Console.WriteLine($"Tempo de execução: {tempoDeProducao} u.t.");
-            
+
             return transicoes;
         }
     }
