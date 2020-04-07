@@ -38,17 +38,22 @@ namespace MultiAgentMarkovMonolithic
 
             Console.WriteLine($"\nPolitica de otimizacao encontrada em {timerOptimization.ElapsedMilliseconds / 1000.0} seg");
 
-            var timerProducao = new Stopwatch();
-            timerProducao.Start();
-            List<Transition> transicoes = TransicoesProducao(politica: map, qtdProdutos: 2, problema: problema);
-            timerProducao.Stop();
-
-            Console.WriteLine($"\nProducao realizada em {timerProducao.ElapsedMilliseconds / 1000.0} seg");
-            Console.WriteLine($"Foram realizadads {transicoes.Count} transições, sendo elas:\n");
-            foreach (var t in transicoes)
+            for (var i = 0; i < 1000; i += 20)
             {
-                Console.WriteLine(t);
+                Console.WriteLine($"{i} pares de produto:\n");
+                List<Transition> transicoes = TransicoesProducao(politica: map, qtdProdutos: i, problema: problema);
+                Console.WriteLine($"Foram realizadads {transicoes.Count} transições\n");
             }
+
+            //var timerProducao = new Stopwatch();
+            //timerProducao.Start();
+            //timerProducao.Stop();
+
+            //Console.WriteLine($"\nProducao realizada em {timerProducao.ElapsedMilliseconds / 1000.0} seg");
+            //foreach (var t in transicoes)
+            //{
+            //    Console.WriteLine(t);
+            //}
 
 
         }
@@ -122,8 +127,9 @@ namespace MultiAgentMarkovMonolithic
             }
 
             // Value Iteration Mathod
-            for (var i = 0; i <= 100; i++) // RESTRIÇÃO: 100 ITERAÇÕES
+            for (var i = 0; i < 100; i++) // RESTRIÇÃO: 100 ITERAÇÕES
             {
+                Dictionary<AbstractState, double> vAntigo = new Dictionary<AbstractState, double>(v);
                 foreach (var s in stateSet)
                 {
                     // Registrando os eventos permitidos para o estado s e os eventos destino possíveis
@@ -137,35 +143,39 @@ namespace MultiAgentMarkovMonolithic
 
                     // Calculando a esperança de maximização de paralelismo para cada ação
                     List<double> esperancas = new List<double>();
-                    SortedDictionary<double, AbstractEvent> eventosOrdenadosPorEsperanca = new SortedDictionary<double, AbstractEvent>();
+                    // SortedDictionary<double, AbstractEvent> eventosOrdenadosPorEsperanca = new SortedDictionary<double, AbstractEvent>();
+                    List<(double esperanca, AbstractEvent evento)> tuplasEventos = new List<(double esperanca, AbstractEvent evento)>();
                     foreach (var a in eventosPermitidos)
                     {
                         double sum = 0.0;
                         foreach (var sDest in estadosDestino)
                         {
-                            sum += (double)Probabilidade(s, sDest, a) * (sDest.ActiveTasks() + d * v[sDest]);
+                            sum += (double)Probabilidade(s, sDest, a) * (sDest.ActiveTasks() + d * vAntigo[sDest]);
                         }
-                        if (!eventosOrdenadosPorEsperanca.ContainsKey(sum))
-                        {
-                            eventosOrdenadosPorEsperanca.Add(sum, a);
-                        }
-                        else
-                        {
-                            double diff = 1e-10;
-                            while (eventosOrdenadosPorEsperanca.ContainsKey(sum - diff))
-                            {
-                                diff = diff + diff / 10;
-                            }
-                            eventosOrdenadosPorEsperanca.Add(sum - diff, a); //adiciona uma chave diferente ao dicionário
-                        }
+                        tuplasEventos.Add((esperanca: sum, evento: a));
+
+                        //if (!eventosOrdenadosPorEsperanca.ContainsKey(sum))
+                        //{
+                        //    eventosOrdenadosPorEsperanca.Add(sum, a);
+                        //}
+                        //else
+                        //{
+                        //    double diff = 1e-10;
+                        //    while (eventosOrdenadosPorEsperanca.ContainsKey(sum - diff))
+                        //    {
+                        //        diff = diff + diff / 10;
+                        //    }
+                        //    eventosOrdenadosPorEsperanca.Add(sum - diff, a); //adiciona uma chave diferente ao dicionário
+                        //}
                         esperancas.Add(sum);
                     }
 
                     v[s] = Max(esperancas);
                     // v[s] = eventosOrdenadosPorEsperanca.First().Key;
-                    var eventosOrdenados = eventosOrdenadosPorEsperanca.Values.ToList();
-                    eventosOrdenados.Reverse();
-                    mapping[s] = eventosOrdenados;
+                    // var eventosOrdenados = eventosOrdenadosPorEsperanca.Values.ToList();
+                    // eventosOrdenados.Reverse();
+                    mapping[s] = tuplasEventos.OrderByDescending(i => i.esperanca).ThenBy(i => i.evento.ToString()).Select(i=> i.evento).ToList();
+
                 }
             }
 
@@ -190,6 +200,13 @@ namespace MultiAgentMarkovMonolithic
             return max;
         }
 
+        /// <summary>
+        /// Retorna uma lista de transições com base em uma politica e nas carateristicas da FMS
+        /// </summary>
+        /// <param name="politica"></param>
+        /// <param name="qtdProdutos"></param>
+        /// <param name="problema"></param>
+        /// <returns></returns>
         static List<Transition> TransicoesProducao(Politica politica, int qtdProdutos, FMS problema)
         {
             AbstractState estadoAtual = problema.Supervisor.InitialState;
@@ -250,7 +267,7 @@ namespace MultiAgentMarkovMonolithic
             }
 
             Console.WriteLine("Já nao existem mais eventos permitidos pela politica");
-            Console.WriteLine($"Tempo de execução: {tempoDeProducao} u.t.");
+            Console.WriteLine($"Tempo de execução: {tempoDeProducao} u.t.\n");
 
             return transicoes;
         }
