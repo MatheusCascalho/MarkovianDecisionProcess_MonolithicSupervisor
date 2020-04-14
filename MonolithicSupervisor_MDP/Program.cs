@@ -32,7 +32,7 @@ namespace MultiAgentMarkovMonolithic
 
             // Relacionando cada estado com suas respectivas transições
             allowedEvents = supervisor.Transitions.GroupBy(t => t.Origin).ToDictionary(g => g.Key, g => g.ToArray());
-            var pathPolitica = @"C:\Users\Administrador\Documents\Matheus Cascalho\lacsed\MarkovianDecisionProcess_MonolithicSupervisor\MonolithicSupervisor_MDP\politica.bin";
+            var pathPolitica = @"politica.bin";
 
             ////////////////////////// CRIAR POLITICA E SALVAR EM ARQUIVO .BIN
             ////////////////////var timerOptimization = new Stopwatch();
@@ -70,10 +70,10 @@ namespace MultiAgentMarkovMonolithic
                 Console.WriteLine("Politica lida!!");
 
                 Console.WriteLine("Resultados das simulações:\n");
-                var pathCSV = @"C:\Users\Administrador\Documents\Matheus Cascalho\lacsed\MarkovianDecisionProcess_MonolithicSupervisor\MonolithicSupervisor_MDP\resultado.csv";
+                var pathCSV = @"resultado.csv";
                 StreamWriter sw = new StreamWriter(pathCSV, true, Encoding.UTF8);
 
-                var pathTXT = @"C:\Users\Administrador\Documents\Matheus Cascalho\lacsed\MarkovianDecisionProcess_MonolithicSupervisor\MonolithicSupervisor_MDP\eventos.txt";
+                var pathTXT = @"eventos.txt";
                 StreamWriter swTXT = new StreamWriter(pathTXT, true, Encoding.UTF8);
 
 
