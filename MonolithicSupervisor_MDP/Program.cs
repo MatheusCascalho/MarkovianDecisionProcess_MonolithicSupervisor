@@ -309,7 +309,7 @@ namespace MultiAgentMarkovMonolithic
                 }
 
                 List<AbstractEvent> forbidenEvents = allowedEvents[estadoAtual].Where(e => restricao.ContainsKey(e.Trigger) ? restricao[e.Trigger] == 0 : ((scheduler[e.Trigger] > minimumTime) || 
-                (float.IsNaN(scheduler[e.Trigger])))).Select(i => i.Trigger).ToList();
+                (float.IsInfinity(scheduler[e.Trigger])))).Select(i => i.Trigger).ToList();
 
                 foreach (var e in politica[estadoAtual.ToString()])
                 {
